@@ -1,0 +1,23 @@
+var area_trabajo = ee.FeatureCollection('projects/modular-button-471521-c8/assets/Area_cuadrante')
+Map.addLayer(area_trabajo)
+
+var propertie = 'Reg_class';  
+
+var regions = area_trabajo;
+print(regions.limit(1))
+
+// convert vector to raster
+var regionsRaster = ee.Image().uint8().paint({
+    featureCollection: regions,
+    color: propertie
+}).rename(['region']);
+
+// Exporto Raster to assets
+Export.image.toAsset({
+    "image": regionsRaster,
+    "description": 'Quipucamayoc_region_class',
+    "assetId": 'projects/modular-button-471521-c8/assets/' + 'Quipucamayoc_region_class_raster',
+    "scale": 30, //metros
+    "maxPixels": 1e13,
+    "region": area_trabajo.geometry().bounds()
+});

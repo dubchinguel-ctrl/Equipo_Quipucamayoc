@@ -1,0 +1,115 @@
+//Clasificacion
+
+var coll_mosaic = ee.ImageCollection("projects/modular-button-471521-c8/assets/mosaics1");
+
+var area_trabajo = ee.FeatureCollection("projects/modular-button-471521-c8/assets/Area_cuadrante"),
+    area_trabajo_raster = ee.Image("projects/modular-button-471521-c8/assets/Quipucamayoc_region_class_raster");
+    
+var dem = ee.Image("USGS/SRTMGL1_003");
+var slope = ee.Terrain.slope(dem).rename('slope').updateMask(area_trabajo_raster)
+Map.addLayer(slope,{},'slope',false)
+Map.addLayer(muestras_puntos)
+var clasificacion = ee.Image([]).select([]);
+for (var year = 2023; year<=2023; year++){
+    // Cargar Mosaico
+      var LandsatYear = coll_mosaic.filter(ee.Filter.eq('year', year)).mosaic()
+                                   .addBands(slope);
+    
+      Map.addLayer(LandsatYear,{"bands":["swir1","nir","red"],"min":100,"max":4500},'Landsat_median_'+year,false)
+
+    //Paso 2 
+    // AREAS DE ENTRENAMIENTO
+   // var area_entrenamiento = ee.FeatureCollection([glaciar,lagunas,bofedal,otros, sombra]).flatten();
+  var area_entrenamiento = muestras_puntos
+    var muestras = LandsatYear.sampleRegions(area_entrenamiento, ['clase'], 30)
+
+    //Paso3 
+    //CLASIFICACION  //Randon Forest
+    
+    var Entrenamiento_clasificador_RF = ee.Classifier.smileRandomForest(50).train(muestras, 'clase')
+    var clasif_RF = LandsatYear.classify(Entrenamiento_clasificador_RF)
+    print('explain()',Entrenamiento_clasificador_RF.explain())
+    
+    Map.addLayer(clasif_RF.selfMask(), {min:1,max:10, 
+                            palette:['b0ad00','fff83d','8a6120','09421b','7a6421','1cfaff','2b16ff','1fc24c','ffa5f9', '0b0200']
+    }, 'clasif_RF-'+year,false)
+    
+    // CART
+    var Entrenamiento_clasificador_CART = ee.Classifier.smileCart().train(muestras, 'clase')
+    var clasif_CART = LandsatYear.classify(Entrenamiento_clasificador_CART)
+    
+    Map.addLayer(clasif_CART.selfMask(), {min:1,max:10, 
+                            palette:['b0ad00','fff83d','8a6120','09421b','7a6421','1cfaff','2b16ff','1fc24c','ffa5f9', '0b0200']
+    }, 'clasif_CART-'+year,false)
+    
+        
+    // SVM
+    var Entrenamiento_clasificador_SVM = ee.Classifier.libsvm().train(muestras, 'clase')
+    var clasif_SVM = LandsatYear.classify(Entrenamiento_clasificador_SVM)
+    
+    Map.addLayer(clasif_SVM.selfMask(), {min:1,max:10, 
+                            palette:['b0ad00','fff83d','8a6120','09421b','7a6421','1cfaff','2b16ff','1fc24c','ffa5f9', '0b0200']
+    }, 'clasif_SVM-'+year,false)
+    
+    
+   clasificacion = clasificacion.addBands(clasif_RF.rename('clasificacion_'+year))
+}
+
+print(clasificacion.toByte())
+
+  Export.image.toAsset({
+    image: clasificacion.toByte(), 
+    description: 'clasificacion_1', 
+    assetId: 'projects/modular-button-471521-c8/assets/clasificacion/' + 'clasificacion_1', 
+    region: area_trabajo.geometry().bounds(), 
+    scale: 30,
+    maxPixels: 1e13
+  })
+  
+   // ===================== VALIDACIÓN Y MÉTRICAS =====================
+  function evaluar(name, cls){
+    var pred = evalImg.classify(cls);
+    var test = pred.sampleRegions({
+      collection: testFC,
+      properties: ['clase'],
+      scale: 30,
+      geometries: false
+    });
+    var em = test.errorMatrix('clase', 'classification');
+
+    var OA = em.accuracy();
+    var Kappa = em.kappa();
+    var UA = em.consumersAccuracy();
+    var PA = em.producersAccuracy();
+
+    print('=== '+name+' ('+year+') ===');
+    print('Matriz de Confusión:', em);
+    print('Exactitud Global (OA):', OA);
+    print('Kappa:', Kappa);
+    print('Precisión del Usuario (UA):', UA);
+    print('Precisión del Productor (PA):', PA);
+
+    return ee.Feature(null, {
+      year: year,
+      classifier: name,
+      overall_accuracy: OA,
+      kappa: Kappa,
+      user_accuracy: UA,
+      producer_accuracy: PA,
+      confusion_matrix: em.array()
+    });
+  }
+
+  var evalYear = ee.FeatureCollection([
+    evaluar('RF', RF), evaluar('CART', CART), evaluar('SVM', SVM)
+  ]);
+
+  print('Resumen de exactitud '+year, evalYear);
+
+  Export.table.toDrive({
+    collection: evalYear,
+    description: 'Evaluacion_'+year,
+    fileNamePrefix: 'Evaluacion_'+year,
+    fileFormat: 'CSV'
+  });
+});

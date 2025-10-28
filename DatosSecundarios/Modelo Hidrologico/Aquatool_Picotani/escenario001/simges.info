@@ -1,0 +1,52 @@
+ <CONTENIDO>
+ SIMGES - FECHA: 27/10/2025    10:14:23. TITULO:Título                                                      
+ </CONTENIDO>
+ <NUMEROSERIES>
+ 5
+ </NUMEROSERIES>	
+ <CONFIGTABLA>
+ -11
+ </CONFIGTABLA>
+ <CONFIGTITULOS>
+ 3
+ "Tipo de elemento"
+ "Nombre elemento"
+ "Tipo de resultado"
+ </CONFIGTITULOS>
+ <TITULOS>
+ "Aportación"	"Aportación"	"Aportación"	"Río t1"	"Río t1"	
+ "Aportación nº 2"	"Aportación nº 3"	"Aportación nº 4"	"Conducción tipo1 nº 1"	"Conducción tipo1 nº 2"	
+ "Aportación"	"Aportación"	"Aportación"	"Caudal"	"Caudal"	
+ </TITULOS>
+<CODELEMENTOS>
+ 20 	 20 	 20 	 50 	 50 	
+ 6 	 7 	 10 	 3 	 13 	
+ 310 	 310 	 310 	 330 	 330 	
+</CODELEMENTOS>
+ <SERIESTABLA>
+ "tabla.txt"
+ </SERIESTABLA>
+ <ANIINI>
+ 1981
+ </ANIINI>
+ <MESINI>
+ 10
+ </MESINI>
+ <ANIFIN>
+ 2016
+ </ANIFIN>
+ <MESFIN>
+ 9
+ </MESFIN>
+ <GARANTIAS>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ </GARANTIAS>

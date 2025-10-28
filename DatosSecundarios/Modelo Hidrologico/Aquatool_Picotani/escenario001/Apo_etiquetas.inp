@@ -1,0 +1,53 @@
+0****Inicio de simulación****
+1Error en el acceso al archivo de configuración
+2Error en el acceso al archivo de datos del modelo
+3Error en el acceso al archivo de precipitaciones
+4Error en el acceso al archivo de evapotranspiracion potencial
+5Error en el acceso al archivo de temperaturas
+6Error en el acceso al archivo de resultados parciales
+7Error en el acceso al archivo de resultados acumulados
+8Error en el acceso al archivo de resultados infiltraciones
+9Error en el acceso al archivo de resultados aportaciones
+101Error de lectura archivo configuración. Dato:
+102Error de lectura archivo de datos del modelo. Dato: 
+103Error de lectura archivo precipitaciones.  
+104Error de lectura archivo evapotranspiracion potencial.  
+105Error de lectura archivo temperaturas.  
+106Error de escritura archivo resultados parciales. Dato: 
+107Error de escritura archivo resultados acumulados. Dato:
+108Error de escritura archivo resultados infiltraciones. Dato: 
+109Error de escritura archivo resultados aportaciones. Dato: 
+110Error. Incongruencia entre los formatos de fecha definidos en los archivos de datos y de precipitaciones.
+111Error. Incongruencia entre los formatos de fecha definidos en los archivos de datos y de etp.
+112Error. Incongruencia entre los formatos de fecha definidos en los archivos de datos y de temperaturas.
+301Error en los parámetros de Témez. Deben ser valores superiores a 0. Cuenca:
+302Error en las variables de estado de Témez. Deben ser valores superiores a 0. Cuenca:
+303Error en la definición del la humedad inicial. Modelo de témez. No puede ser superior al parámetro Hmax. Cuenca:
+304error en la definición del parámetro c. Debe ser inferior a 1.
+305error en la definición del parámetro alfa. Debe ser inferior a 1.
+321Error en los parámetros del modelo HBV. Deben ser valores superiores a 0. Cuenca:
+322Error en las variables de estado del modelo HBV. Deben ser valores superiores a 0. Cuenca:
+323Error en los parámetros del modelo HBV. Los coeficientes de desagüe y percolación deben ser valores inferiores a 1. Cuenca:
+331Error en los parámetros del modelo SAC. Deben ser valores superiores a 0. Cuenca:
+332Error en las variables de estado del modelo SAC. Deben ser valores superiores a 0. Cuenca:
+333Error. Alguna variable de estado del modelo SAC es superior al valor del parámetro asociado. Cuenca:
+341Error los parámetros X1,X3 y X4 del modelo GR4J deben ser superiores a 0. Cuenca:
+342Error las variables de estado del modelo GR4J deben ser valores superiores a 0. Cuenca:
+343Error modelo Gr4j: el valor inicial de la variable de estado de la capa inicial no puedo ser superior al parámetro X1. Cuenca:
+344Error modelo Gr4j: el valor inicial de la variable de estado de la capa inferior no puedo ser superior al parámetro X3. Cuenca:
+351Error los parámetros del modelo AWBM deben ser superiores a cero. Cuenca:
+352Error los parámetros del modelo AWBM deben ser superiores a cero. Cuenca:
+353Error los parámetros del modelo AWBM Kb tiene que ser menor que uno. Cuenca:
+401Error. el codigo de desagüe asignado es erroneo. Cuenca:
+402Error. el codigo de acuífero asignado es erroneo. Cuenca:
+410Error. La columna de precipitación a la que hace referencia no existe en el archivo. Cuenca:
+411Error. La columna de precipitación a la que hace referencia no existe en el archivo. Cuenca:
+421Error en los parámetros del modelo de Nieve tipo 1. Deben ser valores superiores a 0. Cuenca:
+422Error en los valores iniciales de las variables de estado del modelo de Nieve tipo 1. Deben ser valores superiores a 0. Cuenca:
+423Error en los parámetros del modelo de Nieve tipo 2. Deben ser valores superiores a 0. Cuenca:
+424Error en los valores iniciales de las variables de estado del modelo de Nieve tipo 2. Deben ser valores superiores a 0. Cuenca:
+501Error en las variables iniciales del modleo G2RM. Deben ser superiores a cero.
+502Error en los parámetros del modelo G2RM. Deben ser superiores a cero.
+503Error en los datos del modelo G2Rm. Las variables de estado no pueden ser superiores a los parámetros.
+901Error en la licencia. Versión antigua.
+999****Fin de simulación****

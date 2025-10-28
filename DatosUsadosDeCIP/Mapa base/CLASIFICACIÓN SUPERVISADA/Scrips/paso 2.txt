@@ -1,0 +1,137 @@
+// MOSAICOS LANDSAT PARA GLACIARES Y LAGUNAS
+var area_trabajo = ee.FeatureCollection("projects/modular-button-471521-c8/assets/Area_cuadrante"),
+    area_trabajo_raster = ee.Image("projects/modular-button-471521-c8/assets/Quipucamayoc_region_class_raster");
+
+//Nombre de Bandas
+var l5_sr2= {
+      'bandNames': ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7', 'QA_PIXEL', 'ST_B6'],
+      'newNames':  ['blue',  'green', 'red',   'nir',   'swir1', 'swir2', 'pixel_qa', 'temp']
+     }
+var l7_sr2= {
+      'bandNames': ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7', 'QA_PIXEL', 'ST_B6'],
+      'newNames':  ['blue',  'green', 'red',   'nir',   'swir1', 'swir2', 'pixel_qa', 'temp']
+  }
+var l8_sr2 =  {
+      'bandNames': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7', 'QA_PIXEL','ST_B10'],
+      'newNames':  ['blue',  'green', 'red',   'nir',   'swir1', 'swir2',  'pixel_qa','temp']
+  }
+var l9_sr2 =  {
+      'bandNames': ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7', 'QA_PIXEL','ST_B10'],
+      'newNames':  ['blue',  'green', 'red',   'nir',   'swir1', 'swir2',  'pixel_qa','temp']
+  }
+  
+var landsat5 = ee.ImageCollection("LANDSAT/LT05/C02/T1_L2").select(l5_sr2.bandNames, l5_sr2.newNames)
+
+var landsat7 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2").select(l7_sr2.bandNames, l7_sr2.newNames)
+
+var landsat8 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2").select(l8_sr2.bandNames, l8_sr2.newNames)
+
+var landsat9 = ee.ImageCollection("LANDSAT/LC09/C02/T1_L2").select(l9_sr2.bandNames, l9_sr2.newNames)
+
+var landsatColleccion =  landsat5.merge(landsat7)
+                                 .merge(landsat8)
+                                 .merge(landsat9)
+                                 .filterBounds(area_trabajo)
+                                 .sort('system:time_start', true)
+                                 .filter(ee.Filter.lte('CLOUD_COVER_LAND', 50));
+                                 
+// print(landsatColleccion)
+// Map.addLayer(landsatColleccion,{"bands":["swir1","nir","red"],"min":7000,"max":23000},'colleccion'+year,false)
+
+// Enmascarar Nube y sombra de nube
+
+// CFMASK
+
+function CloudmaskCF(image) {
+  // Bit 0 - Fill
+  // Bit 1 - Dilated Cloud
+  // Bit 2 - Unused
+  // Bit 3 - Cloud
+  // Bit 4 - Cloud Shadow
+  var qaMask = image.select('pixel_qa').bitwiseAnd(parseInt('11111', 2)).eq(0);
+
+  var bandspectralnames = ['blue',  'green', 'red',   'nir',   'swir1', 'swir2'];
+  // Apply the scaling factors to the appropriate bands.
+  var opticalBands = image.select(bandspectralnames).multiply(0.0000275).add(-0.2).multiply(10000).toUint16();
+
+  // Replace the original bands with the scaled ones and apply the masks.
+  return image.select(bandspectralnames).addBands(opticalBands, null, true)
+              .updateMask(qaMask);
+}
+
+var landsatColleccionCloudMask = landsatColleccion.map(CloudmaskCF)
+
+// print(landsatColleccionCloudMask)
+// Map.addLayer(landsatColleccionCloudMask,{"bands":["swir1","nir","red"],"min":1000,"max":4500},'colleccion_CloudMask',false)
+
+
+//  Calculo de indices
+
+// NDSI
+var NDSI = function (image){
+  
+  var ndsi = image.expression('(GREEN -SWIR)/(GREEN +SWIR)',{
+      GREEN : image.select('green'),
+      SWIR : image.select('swir1')
+  }).rename('ndsi').clamp(-1, 1).multiply(100).add(100).toByte()
+
+  
+  return image.addBands(ndsi)
+}
+
+// NDVI
+var NDVI = function (image){
+  
+  var ndvi = image.expression('(NIR -RED)/(NIR +RED)',{
+      NIR : image.select('nir'),
+      RED : image.select('red')
+  }).rename('ndvi').clamp(-1, 1).multiply(100).add(100).toByte()
+
+  
+  return image.addBands(ndvi)
+}
+
+// NDWI
+var NDWI = function (image){
+  
+  var ndwi = image.expression('(GREEN -NIR)/(GREEN +NIR)',{
+      GREEN : image.select('green'),
+      NIR : image.select('nir')
+  }).rename('ndwi').clamp(-1, 1).multiply(100).add(100).toByte()
+
+  
+  return image.addBands(ndwi)
+}
+
+var landsatColleccionCloudMask = landsatColleccionCloudMask.map(NDSI)
+                                                           .map(NDVI)
+                                                           .map(NDWI)
+                                                           
+print('landsatColleccionCloudMask',landsatColleccionCloudMask)
+
+Map.addLayer(landsatColleccionCloudMask.select("ndsi"),{"bands":["ndsi"],"min":0,"max":100},'NDSI',false)
+Map.addLayer(landsatColleccionCloudMask.select("ndwi"),{"bands":["ndwi"],"min":0,"max":100},'ndwi',false)
+
+var dem = ee.Image("USGS/SRTMGL1_003");
+var slope = ee.Terrain.slope(dem).rename('slope').updateMask(area_trabajo_raster)
+Map.addLayer(slope,{},'slope',false)
+
+for (var year = 2014; year<=2024; year++){
+  
+  var LandsatYear = landsatColleccionCloudMask.filter(ee.Filter.date(year +'-01-01', year +'-12-31')).median().updateMask(area_trabajo_raster);
+
+  Map.addLayer(LandsatYear,{"bands":["swir1","nir","red"],"min":100,"max":4500},'Landsat_median_'+year,false)
+  
+  // Map.addLayer(LandsatYear.select("ndsi"),{"bands":["ndsi"],"min":-1,"max":1},'NDSI'+year,false)
+  // Map.addLayer(LandsatYear.select("ndwi"),{"bands":["ndwi"],"min":-1,"max":1},'NDWI'+year,false)
+  
+  Export.image.toAsset({
+    image: LandsatYear.set('year', year), 
+    description: 'Landsat-' + year, 
+    assetId: 'projects/modular-button-471521-c8/assets/mosaics1/' + 'Landsat-' + year, 
+    region: area_trabajo.geometry().bounds(), 
+    scale: 30,
+    maxPixels: 1e13
+  })
+     
+}
